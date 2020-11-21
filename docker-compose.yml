@@ -1,0 +1,34 @@
+version: '3.4'
+
+services:
+  queue_send:
+    image: testequeue
+    build: 
+      context: .
+      dockerfile: ./Dockerfile
+    command: node send.js
+    links: 
+      - rabbitmq
+    depends_on: 
+      - rabbitmq
+    deploy:
+      mode: replicated
+      replicas: 4
+  queue_receive:
+    image: testequeue
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: node receive.js
+    links: 
+      - rabbitmq
+    depends_on: 
+      - rabbitmq
+    deploy:
+      mode: replicated
+      replicas: 10
+  rabbitmq: 
+    image: rabbitmq:3-management
+    ports:
+      - 15672:15672
+      - 5672:5672
