@@ -1,7 +1,8 @@
 const amqp = require('amqplib/callback_api')
+const dotenv = require('dotenv').config({ path: '.env'})
 
 setTimeout(() => {
-    amqp.connect('amqp://rabbitmq', function(error0, connection) {
+    amqp.connect(`amqp://${process.env.RABBITMQ_HOST}`, function(error0, connection) {
         let count = 0
         if (error0) {
             throw error0;
@@ -15,15 +16,15 @@ setTimeout(() => {
             let msg = 'Teste Mensagem!';
     
             channel.assertQueue(queue, {
-                durable: false
+                durable: true
             });
             
             const interval = setInterval(() => {
-                if(count > 100) {
+                if(count > 1000) {
                     connection.close()
                     process.exit(0)
                 }
-                channel.sendToQueue(queue, Buffer.from(count.toString()));
+                channel.sendToQueue(queue, Buffer.from(count.toString()), { persistent: true });
                 count += 1
                 console.log(" [x] Enviado %s", count);
             }, 0)
