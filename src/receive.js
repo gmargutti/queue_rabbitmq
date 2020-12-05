@@ -32,6 +32,8 @@ setTimeout(() => {
                 }).then(res => {
                     console.log(`Mensagem recebida: ${msg.content.toString()}`)
                     channel.ack(msg)
+                }).catch(err => {
+                    console.log(err)
                 })
             }, {
                 noAck: false

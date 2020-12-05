@@ -9,21 +9,25 @@ let id = 0
 mongoose.connect(`mongodb://${process.env.MONGODB_HOST}:27017/teste_queue`, { useNewUrlParser: true, useUnifiedTopology: true })
 const ModelItem = mongoose.model('ItemQueue', { count: String })
 
+let connection = {}
+let channel = {}
+const queueName = 'testando'
+
+amqp.connect(`amqp://${process.env.RABBITMQ_HOST}`, function(error, conn) {
+    console.log('RabbitMQ Connected!')
+    connection = conn
+
+    connection.createChannel(function(err, cnl) {
+        cnl.assertQueue(queueName, { durable: true })
+        console.log('RabbitMQ Channel Connected!')
+        channel = cnl
+    })
+})
+
+
 queueRouter.post('/add',  async (req, res) => {
-    const { queueName, queueData } = req.body
-    const connectionPromise = new Promise((resolve, reject) => {
-        amqp.connect(`amqp://${process.env.RABBITMQ_HOST}`, function(error, connection) {
-            resolve(connection)
-        })
-    })
-    const connection = await connectionPromise
-    const channelPromise = new Promise((resolve, reject) => {
-        connection.createChannel(function(err, channel) {
-            channel.assertQueue(queueName, { durable: true })
-            resolve(channel)
-        })
-    })
-    const channel = await channelPromise
+    let { queueData } = req.body
+    queueData = queueData || { status: 'ok', message: 'done' }
     queueData.id = id
     id++
     channel.sendToQueue(queueName, Buffer.from(JSON.stringify(queueData)), { persistent: true })
