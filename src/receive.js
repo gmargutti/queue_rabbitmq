@@ -14,6 +14,8 @@ setTimeout(() => {
             }
     
             var queue = 'testando';
+
+            channel.prefetch(1000)
     
             channel.assertQueue(queue, {
                 durable: true
